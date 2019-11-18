@@ -1,0 +1,267 @@
+spring:
+  profiles:
+    active: local
+
+---
+spring:
+  profiles: local
+
+  batch:
+    table-prefix: SAMPLE_BATCH_
+
+  datasource:
+    batch:
+      slave:
+        url: jdbc:mysql://10.102.1.6/batch_log
+        driver-class-name: com.mysql.jdbc.Driver
+        username: web_dev
+        password: dsfs
+      master:
+        url: jdbc:mysql://10.102.1.6/batch_log
+        driver-class-name: com.mysql.jdbc.Driver
+        username: web_dev
+        password: dsfs
+
+    namu:
+      slave:
+        url: jdbc:mysql://10.102.1.6/namu_db
+        driver-class-name: com.mysql.jdbc.Driver
+        username: web_dev
+        password: dsfs
+      master:
+        url: jdbc:mysql://10.102.1.6/namu_db
+        driver-class-name: com.mysql.jdbc.Driver
+        username: web_dev
+        password: dsfs
+
+    npro:
+      master:
+        url: jdbc:mysql://10.102.1.6/npro
+        driver-class-name: com.mysql.jdbc.Driver
+        username: web_dev
+        password: dsfs
+
+    netpathy:
+      master:
+        url: jdbc:mysql://10.102.1.6/netpathy
+        driver-class-name: com.mysql.jdbc.Driver
+        username: web_dev
+        password: dsfs
+
+
+property:
+  alarm-test-partners-on:
+  alarm-test-partners-off:
+
+
+---
+spring:
+  profiles: dev
+
+  batch:
+    table-prefix: SAMPLE_BATCH_
+
+  datasource:
+    batch:
+      slave:
+        url: jdbc:mysql://10.102.1.6/batch_log
+        driver-class-name: com.mysql.jdbc.Driver
+        username: web_dev
+        password: dsfs
+      master:
+        url: jdbc:mysql://10.102.1.6/batch_log
+        driver-class-name: com.mysql.jdbc.Driver
+        username: web_dev
+        password: dsfs
+
+    namu:
+      slave:
+        url: jdbc:mysql://10.102.1.6/namu_db
+        driver-class-name: com.mysql.jdbc.Driver
+        username: web_dev
+        password: dsfs
+      master:
+        url: jdbc:mysql://10.102.1.6/namu_db
+        driver-class-name: com.mysql.jdbc.Driver
+        username: web_dev
+        password: dsfs
+
+    npro:
+      master:
+        url: jdbc:mysql://10.102.1.6/npro
+        driver-class-name: com.mysql.jdbc.Driver
+        username: web_dev
+        password: dsfs
+
+    netpathy:
+      master:
+        url: jdbc:mysql://10.102.1.6/netpathy
+        driver-class-name: com.mysql.jdbc.Driver
+        username: web_dev
+        password: dsfs
+
+
+property:
+  alarm-test-partners-on:
+  alarm-test-partners-off:
+
+
+---
+spring:
+  profiles: qa
+
+  batch:
+    table-prefix: SAMPLE_BATCH_
+
+  datasource:
+    batch:
+      slave:
+        url: jdbc:mysql://192.168.1.22:3307/batch_log
+        driver-class-name: com.mysql.jdbc.Driver
+        username: app_batch_log
+        password: fds
+      master:
+        url: jdbc:mysql://192.168.1.44:3307/batch_log
+        driver-class-name: com.mysql.jdbc.Driver
+        username: app_batch_log
+        password: fdsf
+
+    namu:
+      slave:
+        url: jdbc:mysql://192.168.1.33:3307/namu_db
+        driver-class-name: com.mysql.jdbc.Driver
+        username: web_dev
+        password: fdsgdf
+      master:
+        url: jdbc:mysql://192.168.1.55:3307/namu_db
+        driver-class-name: com.mysql.jdbc.Driver
+        username: web_dev
+        password: sdf
+
+    npro:
+      master:
+        url: jdbc:mysql://192.168.1.534:33/npro
+        driver-class-name: com.mysql.jdbc.Driver
+        username: app_sms
+        password: fsd
+
+    netpathy:
+      master:
+        url: jdbc:mysql://192.168.1.234/netpathy
+        driver-class-name: com.mysql.jdbc.Driver
+        username: app_netpathy
+        password: fsd
+
+
+property:
+  alarm-test-partners-on:
+  alarm-test-partners-off:
+
+
+---
+spring:
+  profiles: stg
+
+  batch:
+    table-prefix: SAMPLE_BATCH_
+
+  datasource:
+    batch:
+      slave:
+        url: jdbc:mysql://192.168.1.155:6456/batch_log
+        driver-class-name: com.mysql.jdbc.Driver
+        username: app_batch_log
+        password: fsdfs
+      master:
+        url: jdbc:mysql://192.168.1.154:2342/batch_log
+        driver-class-name: com.mysql.jdbc.Driver
+        username: app_batch_log
+        password: fsdf
+
+    namu:
+      slave:
+        url: jdbc:mysql://192.168.1.23:28000/namu_db
+        driver-class-name: com.mysql.jdbc.Driver
+        username: web_dev
+        password: efsd
+      master:
+        url: jdbc:mysql://192.168.1.554/namu_db
+        driver-class-name: com.mysql.jdbc.Driver
+        username: web_dev
+        password: gef
+
+    npro:
+      master:
+        url: jdbc:mysql://192.168.1.123:645/npro
+        driver-class-name: com.mysql.jdbc.Driver
+        username: app_msg
+        password: fge
+
+    netpathy:
+      master:
+        url: jdbc:mysql://192.168.1.342/netpathy
+        driver-class-name: com.mysql.jdbc.Driver
+        username: app_netpathy
+        password: gdf
+
+
+property:
+  # 주어진 파트너 ID 가 존재할 경우, 해당 파트너의 딜만 조회 (특정 테스트 환경에서 사용)
+  alarm-test-partners-on: a,b
+  alarm-test-partners-off:
+
+
+---
+spring:
+  profiles: prod
+
+  batch:
+    table-prefix: SAMPLE_BATCH_
+
+  datasource:
+    batch:
+      slave:
+        # slave 는 두 군데 192.168.1.123, 192.168.1.155 필요할 시 확장하여 사용
+        url: jdbc:mysql://192.168.1.155:434/batch_log
+        driver-class-name: com.mysql.jdbc.Driver
+        username: app_batch_log
+        password: fsd
+      master:
+        url: jdbc:mysql://192.168.1.154:234/batch_log
+        driver-class-name: com.mysql.jdbc.Driver
+        username: app_batch_log
+        password: fsdf
+
+    namu:
+      slave:
+        url: jdbc:mysql://192.168.1.203:28000/namu_db
+        driver-class-name: com.mysql.jdbc.Driver
+        username: web_dev
+        password: fsd
+      master:
+        url: jdbc:mysql://192.168.1.212/namu_db
+        driver-class-name: com.mysql.jdbc.Driver
+        username: web_dev
+        password: ff
+
+    npro:
+      master:
+        url: jdbc:mysql://192.168.1.342:2342/npro
+        driver-class-name: com.mysql.jdbc.Driver
+        username: app_msg
+        password: dd
+
+    netpathy:
+      master:
+        url: jdbc:mysql://192.168.1.234/netpathy
+        driver-class-name: com.mysql.jdbc.Driver
+        username: app_netpathy
+        password: tt
+
+
+property:
+  alarm-test-partners-on:
+  alarm-test-partners-off: a,b
+
+
+---

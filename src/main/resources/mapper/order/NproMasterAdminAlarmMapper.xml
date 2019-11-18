@@ -1,0 +1,62 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sample.batch.order.mapper.NproMasterAdminAlarmMapper">
+
+    <!-- KKO ALARM TALK - MMS_CONTENTS_INFO -->
+    <insert id="createMsgKko" parameterType="com.sample.batch.common.model.Msg" useGeneratedKeys="true" keyProperty="contSeq">
+        INSERT INTO MMS_CONTENTS_INFO
+        (
+            FILE_CNT,
+            MMS_NOTICETALK_BODY,
+            MMS_NOTICETALK_SUBJECT,
+            MMS_BODY,
+            MMS_SUBJECT,
+            MMS_REQ_DATE
+        )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+                1,
+                #{item.kkoBody},
+                #{item.kkoSubject},
+                #{item.mmsBody},
+                #{item.mmsSubject},
+                #{item.reqDate}
+            )
+        </foreach>
+    </insert>
+
+    <!-- KKO ALARM TALK - MSG_DATA -->
+    <insert id="createMsgLms" parameterType="com.sample.batch.common.model.Msg" useGeneratedKeys="true" keyProperty="msgSeq">
+        INSERT INTO MSG_DATA
+        (
+            CUR_STATE,
+            REQ_DATE,
+            CALL_TO,
+            CALL_FROM,
+            SMS_TXT,
+            MSG_TYPE,
+            MSG_TYPE_RESEND,
+            CONT_SEQ,
+            MSG_NOTICETALK_SENDER_KEY,
+            MSG_NOTICETALK_TMP_KEY
+        )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.curState},
+                #{item.reqDate},
+                #{item.callTo},
+                #{item.callFrom},
+                #{item.smsTxt},
+                #{item.msgType},
+                #{item.msgTypeResend},
+                #{item.contSeq},
+                #{item.kkoSenderKey},
+                #{item.kkoTemplateKey}
+            )
+        </foreach>
+    </insert>
+
+</mapper>

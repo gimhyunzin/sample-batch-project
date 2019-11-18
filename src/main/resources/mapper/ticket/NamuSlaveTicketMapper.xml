@@ -1,0 +1,83 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sample.batch.ticket.mapper.NamuSlaveTicketMapper">
+
+    <!-- 주어진 파트너 ID 가 존재할 경우, 해당 파트너의 딜만 조회 (특정 테스트 환경에서 사용) : property 에서 주입 -->
+    <sql id="andIfExistOnOffPartnersFindOnlyTheirs">
+        <if test="onPartners.size() > 0">
+            AND deal_info.company_id IN <foreach collection="onPartners" item="item" separator="," open="(" close=")"> TRIM(#{item})</foreach>
+        </if>
+        <if test="offPartners.size() > 0">
+            AND deal_info.company_id NOT IN <foreach collection="offPartners" item="item" separator="," open="(" close=")"> TRIM(#{item})</foreach>
+        </if>
+    </sql>
+
+    <select id="getTicketInformation" parameterType="java.util.Map" resultType="com.sample.batch.ticket.model.Ticket">
+        SELECT
+          deal_info.deal_id AS dealId,
+          DATE_FORMAT(from_unixtime(deal_info.valid_end_time), '%Y년 %c월%e일 %H시 %i분 %s초') AS validEndTime,
+          deal_info_detail_ko.main_name AS dealName,
+          company_info.company_name AS companyName,
+          company_info.aff_mobile AS affMobile,
+          company_info.cs_mobile AS csMobile,
+          company_info.inventory_mobile AS inventoryMobile,
+          ticket_unused_alarm.company_cs_manager AS companyCsManager,
+          ticket_unused_alarm.company_contact_manager AS companyContactManager,
+          ticket_unused_alarm.company_stock_manager AS companyStockManager,
+          company_info.aff_email AS affEmail,
+          company_info.cs_email AS csEmail,
+          company_info.inventory_email AS inventoryEmail,
+          company_info.aff_name AS affName,
+          company_info.cs_name AS csName,
+          company_info.inventory_name AS inventoryName,
+          member_info.m_id AS legacyId
+
+         FROM deal_info
+            INNER JOIN deal_info_detail_ko
+                    ON deal_info.deal_id = deal_info_detail_ko.deal_id
+            INNER JOIN company_info
+                    ON deal_info.company_id = company_info.company_id
+            INNER JOIN ticket_unused_alarm
+                    ON deal_info.deal_id = ticket_unused_alarm.deal_id
+            INNER JOIN member_info
+                    ON company_info.company_id = member_info.user_id
+            INNER JOIN deal_info_settlement
+                    ON deal_info_settlement.deal_id = deal_info.deal_id
+
+        WHERE deal_info.delete_flag = 0
+          AND deal_info.sale_type = 0
+          AND deal_info_settlement.refund_apply_flag = 1
+          AND deal_info.deal_group_id IN ('100000000', '300000000','400000000','500000000')
+          AND DATE(NOW()) = date_format(from_unixtime(deal_info.valid_end_time),'%Y-%m-%d')
+          <include refid="andIfExistOnOffPartnersFindOnlyTheirs" />
+
+     GROUP BY deal_info.deal_id;
+    </select>
+
+    <!-- 전체 쿠폰 조회의 상태값은 order status = 1, coupon status 0, 1, 2 로 정의되어 있다. -->
+    <!-- 일감 GRPSVC-509 참조 -->
+    <select id="getAllCouponInformation" parameterType="java.lang.Long" resultType="com.sample.batch.ticket.model.Coupon">
+      SELECT coupon_info.coupon_id AS couponId,
+             coupon_info.deal_id AS dealId,
+             coupon_info.coupon_status AS couponStatus
+
+        FROM coupon_info
+           LEFT JOIN deal_info_option
+                  ON coupon_info.option_id = deal_info_option.option_id
+          INNER JOIN order_info
+                  ON coupon_info.deal_id = order_info.deal_id
+
+       WHERE coupon_info.deal_id = #{value}
+         AND coupon_info.order_id = order_info.order_id
+         AND order_info.order_status = 1
+         AND coupon_info.coupon_status IN (0, 1, 2)
+
+         <![CDATA[
+            AND coupon_info.parent_id <> 0
+         ]]>
+
+      GROUP BY coupon_info.coupon_id
+    </select>
+</mapper>
+

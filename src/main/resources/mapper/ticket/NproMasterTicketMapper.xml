@@ -1,0 +1,53 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sample.batch.ticket.mapper.NproMasterTicketMapper">
+
+    <insert id="createLmsMessage" parameterType="com.sample.batch.common.model.Msg"
+            useGeneratedKeys="true" keyProperty="contSeq">
+
+        INSERT INTO MMS_CONTENTS_INFO
+        (
+            FILE_CNT,
+            MMS_BODY,
+            MMS_SUBJECT,
+            MMS_REQ_DATE
+        )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+                0,
+                #{item.mmsBody},
+                #{item.mmsSubject},
+                #{item.reqDate}
+            )
+        </foreach>
+    </insert>
+
+
+    <insert id="createSmsMessage" parameterType="com.sample.batch.common.model.Msg"
+            useGeneratedKeys="true" keyProperty="msgSeq">
+
+        INSERT INTO MSG_DATA(
+          CUR_STATE,
+          REQ_DATE,
+          CALL_TO,
+          CALL_FROM,
+          SMS_TXT,
+          MSG_TYPE,
+          CONT_SEQ
+        )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.curState},
+                #{item.reqDate},
+                #{item.callTo},
+                #{item.callFrom},
+                #{item.smsTxt},
+                #{item.msgType},
+                #{item.contSeq}
+            )
+        </foreach>
+    </insert>
+</mapper>

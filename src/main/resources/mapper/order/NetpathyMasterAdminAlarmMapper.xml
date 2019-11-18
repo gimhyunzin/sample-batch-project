@@ -1,0 +1,39 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sample.batch.order.mapper.NetpathyMasterAdminAlarmMapper">
+    <insert id="createMail" parameterType="com.sample.batch.common.model.Mail" useGeneratedKeys="true" keyProperty="autoCode">
+
+        INSERT INTO AUTOMAIL_INTERFACE(
+          LEGACYID,
+          AUTOTYPE,
+          EMAIL,
+          NAME,
+          INSERTDATE,
+          SENDYN,
+          TAG1,
+          TAG2,
+          TAG3,
+          TAG4,
+          TAG5,
+          HTMLTAG1
+        )
+        VALUES
+          <foreach collection="list" item="item" separator=",">
+              (
+                  #{item.legacyId},
+                  #{item.autoType},
+                  #{item.email},
+                  #{item.name},
+                  NOW(),
+                  #{item.sendYn},
+                  #{item.tag1},
+                  #{item.tag2},
+                  #{item.tag3},
+                  #{item.tag4},
+                  #{item.tag5},
+                  #{item.htmlTag1}
+              )
+          </foreach>
+    </insert>
+</mapper>

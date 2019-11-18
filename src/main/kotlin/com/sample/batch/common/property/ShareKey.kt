@@ -1,0 +1,18 @@
+package com.sample.batch.common.property
+
+enum class ShareKey {
+    // share model name
+    TICKET_LIST,
+
+    CLAIM_REQUEST_KKO_LIST,
+    CLAIM_REQUEST_DATA_LIST,
+    CLAIM_REQUEST_LAST_KEY,
+
+    CLAIM_COMPLETE_KKO_LIST,
+    CLAIM_COMPLETE_DATA_LIST,
+    CLAIM_COMPLETE_LAST_KEY,
+
+    ORDER_COMPLETE_KKO_LIST,
+    ORDER_COMPLETE_DATA_LIST,
+    ORDER_COMPLETE_LAST_KEY
+}

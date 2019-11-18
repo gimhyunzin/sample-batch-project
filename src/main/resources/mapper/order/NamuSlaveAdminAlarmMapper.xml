@@ -1,0 +1,280 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sample.batch.order.mapper.NamuSlaveAdminAlarmMapper">
+
+    <!-- // DEAL INFO -->
+
+    <resultMap id="resultMapDealInfo" type="com.sample.batch.order.model.DealInfo">
+        <result property="dealId" column="dealId" />
+        <result property="mdId" column="mdId" />
+        <result property="managerId" column="managerId" />
+        <result property="companyId" column="companyId" />
+        <association property="mdInfo" column="{userId=mdId}" select="selectPartnerMember" />
+        <association property="amdInfo" column="{userId=managerId}" select="selectPartnerMember" />
+        <association property="companyInfo" column="companyId" select="selectCompanyInfo" />
+        <association property="dealDetail" column="dealId" select="selectDealDetail" />
+    </resultMap>
+
+
+    <select id="selectDealInfo" parameterType="java.lang.Long" resultMap="resultMapDealInfo">
+        SELECT
+            di.deal_id AS dealId
+            , IFNULL(di.md_id, '') AS mdId
+            , IFNULL(di.manager_id, '') AS managerId
+            , IFNULL(di.company_id, '') AS companyId
+        FROM
+            deal_info di
+        WHERE
+            di.deal_id = #{dealId}
+    </select>
+
+    <select id="selectDealDetail" parameterType="java.lang.Long" resultType="com.sample.batch.order.model.DealDetail">
+        SELECT
+            dids.deal_id AS dealId
+            , dids.order_finish_alarm_target AS orderFinishAlarmTarget
+            , dids.order_cancel_alarm_target AS orderCancelAlarmTarget
+            , dids.order_manner_alarm_flag AS orderMannerAlarmFlag
+        FROM
+          deal_info_detail_service dids
+        WHERE
+            dids.deal_id = #{dealId}
+    </select>
+
+    <select id="selectPartnerMember" parameterType="java.util.Map" resultType="com.sample.batch.order.model.PartnerMember">
+        SELECT
+            pm.user_id AS userId
+            , pm.user_name AS userName
+            , pm.user_tel2 AS userMobile
+            , pm.user_email AS userEmail
+            , (SELECT mi.m_id FROM member_info mi WHERE mi.user_id = pm.user_id) AS userMId
+        FROM
+            partner_member pm
+        WHERE
+            pm.user_status = '1'
+        AND
+            pm.user_id = #{userId}
+    </select>
+
+    <select id="selectCompanyInfo" parameterType="java.lang.String" resultType="com.sample.batch.order.model.CompanyInfo">
+        SELECT
+            ci.company_id AS companyId
+            , ci.company_name AS companyName
+
+            , ci.aff_name AS affName
+            , ci.aff_mobile AS affMobile
+            , ci.aff_email AS affEmail
+
+            , ci.cs_name AS csName
+            , ci.cs_mobile AS csMobile
+            , ci.cs_email AS csEmail
+
+            , ci.inventory_name AS inventoryName
+            , ci.inventory_mobile AS inventoryMobile
+            , ci.inventory_email AS inventoryEmail
+
+            , (SELECT mi.m_id FROM member_info mi WHERE mi.user_id = ci.company_id) AS companyMId
+        FROM
+            company_info ci
+        WHERE
+            ci.company_id = #{companyId}
+    </select>
+
+    <!-- DEAL INFO // -->
+
+    <!-- // ORDER INFO -->
+
+    <resultMap id="resultMapOrderInfo" type="com.sample.batch.order.model.OrderInfo">
+        <result property="orderId" column="orderId" />
+        <result property="dealId" column="dealId" />
+        <result property="dealName" column="dealName" />
+        <result property="senderName" column="senderName" />
+        <result property="orderName" column="orderName" />
+        <result property="orderMobile" column="orderMobile" />
+        <result property="orderEmail" column="orderEmail" />
+    </resultMap>
+
+    <select id="selectOrderInfo" parameterType="java.lang.Long" resultMap="resultMapOrderInfo">
+        SELECT
+            oi.order_id AS orderId
+            , oi.deal_id AS dealId
+            , oi.deal_name AS dealName
+            , oi.sender_name AS senderName
+            , oi.order_name AS orderName
+            , oi.order_mobile AS orderMobile
+            , oi.order_email AS orderEmail
+        FROM
+            order_info oi
+        WHERE
+            oi.order_id = #{orderId}
+    </select>
+
+    <select id="selectOptionCouponList" parameterType="java.util.Map" resultType="com.sample.batch.order.model.OptionCoupon">
+        SELECT
+            oid.order_id AS orderId
+            , oid.option_id AS optionId
+            , ci.coupon_code AS couponCode
+            , (SELECT dio.option_kind FROM deal_info_option dio WHERE dio.option_id = oid.option_id) AS optionKind
+            , (SELECT dio.option_value FROM deal_info_option dio WHERE dio.option_id = oid.option_id) AS optionValue
+            , (SELECT DATE_FORMAT(tdo.calendar_date, '%Y-%m-%d') FROM tb_deal_option_decorator_data tdo WHERE tdo.deal_id = ci.deal_id AND tdo.option_id = oid.option_id) AS optionDate
+        FROM
+            coupon_info ci
+
+        LEFT JOIN order_info_detail oid ON oid.deal_id = ci.deal_id
+        AND oid.order_id = ci.order_id
+        AND oid.option_id = ci.option_id
+        AND ci.parent_id <![CDATA[ <> ]]> 0
+        AND ci.coupon_status = #{couponStatus}
+
+        WHERE
+            oid.order_id = #{orderId}
+    </select>
+
+    <!-- ORDER INFO // -->
+
+
+    <!-- /////// MAIN SQL -->
+
+    <!-- 주어진 파트너 ID 가 존재할 경우, 해당 파트너의 딜만 조회 (특정 테스트 환경에서 사용) : property 에서 주입 -->
+    <sql id="andIfExistOnOffPartnersFindOnlyTheirs">
+        <if test="onPartners.size() > 0">
+            AND di.company_id IN <foreach collection="onPartners" item="item" separator="," open="(" close=")"> TRIM(#{item})</foreach>
+        </if>
+        <if test="offPartners.size() > 0">
+            AND di.company_id NOT IN <foreach collection="offPartners" item="item" separator="," open="(" close=")"> TRIM(#{item})</foreach>
+        </if>
+    </sql>
+
+    <!-- // CLAIM REQUEST ALARM -->
+
+    <resultMap id="resultMapClaimRequest" type="com.sample.batch.order.model.AdminAlarm">
+        <result property="claimId" column="claimId" />
+        <result property="dealId" column="dealId" />
+        <result property="orderId" column="orderId" />
+        <result property="minusOrderId" column="minusOrderId" />
+        <result property="requestDate" column="requestDate" />
+        <association property="dealInfo" column="dealId" select="selectDealInfo" />
+        <association property="orderInfo" column="minusOrderId" select="selectOrderInfo" />
+        <collection property="optionCouponList" column="{orderId=orderId,couponStatus=couponStatus}" select="selectOptionCouponList" />
+    </resultMap>
+
+    <select id="selectClaimRequestList" parameterType="java.util.Map" resultMap="resultMapClaimRequest">
+        SELECT
+            tc.claim_id AS claimId
+            , tc.deal_id AS dealId
+            , tc.order_id AS orderId
+            , tc.request_date AS requestDate
+            , '3' AS couponStatus
+            , IFNULL(tc.minus_order_id, tc.order_id) AS minusOrderId
+
+        FROM tb_claim tc
+
+        INNER JOIN deal_info di ON tc.deal_id = di.deal_id
+        INNER JOIN deal_info_detail_service did ON tc.deal_id = did.deal_id
+
+        WHERE
+            tc.claim_type = 'C'
+        AND
+            tc.claim_status = 'C1'
+        AND
+            di.deal_group_id IN ('100000000', '300000000')
+        AND
+            (did.order_finish_alarm_target REGEXP ':"1"|:1' OR did.order_cancel_alarm_target REGEXP ':"1"|:1')
+        AND
+            tc.claim_id > (SELECT aac.code_value FROM admin_alarm_code aac WHERE aac.code_type = CONCAT(#{profiles}, '_CLAIM_REQUEST_LAST_KEY'))
+
+        <include refid="andIfExistOnOffPartnersFindOnlyTheirs" />
+
+        ORDER BY tc.claim_id DESC
+    </select>
+
+    <!-- CLAIM REQUEST ALARM // -->
+
+    <!-- // CLAIM COMPLETE ALARM -->
+
+    <resultMap id="resultMapClaimComplete" type="com.sample.batch.order.model.AdminAlarm">
+        <result property="claimId" column="claimId" />
+        <result property="dealId" column="dealId" />
+        <result property="orderId" column="orderId" />
+        <result property="minusOrderId" column="minusOrderId" />
+        <result property="completeDate" column="completeDate" />
+        <association property="dealInfo" column="dealId" select="selectDealInfo" />
+        <association property="orderInfo" column="minusOrderId" select="selectOrderInfo" />
+        <collection property="optionCouponList" column="{orderId=orderId,couponStatus=couponStatus}" select="selectOptionCouponList" />
+    </resultMap>
+
+    <select id="selectClaimCompleteList" parameterType="java.util.Map" resultMap="resultMapClaimComplete">
+        SELECT
+            tc.claim_id AS claimId
+            , tc.deal_id AS dealId
+            , tc.order_id AS orderId
+            , tc.complete_date AS completeDate
+            , '4' AS couponStatus
+            , IFNULL(tc.minus_order_id, tc.order_id) AS minusOrderId
+
+        FROM tb_claim tc
+
+        INNER JOIN deal_info di ON tc.deal_id = di.deal_id
+        INNER JOIN deal_info_detail_service did ON tc.deal_id = did.deal_id
+
+        WHERE
+            tc.claim_type = 'C'
+        AND
+            tc.claim_status = 'C3'
+        AND
+            di.deal_group_id IN ('100000000', '300000000')
+        AND
+            (did.order_finish_alarm_target REGEXP ':"1"|:1' OR did.order_cancel_alarm_target REGEXP ':"1"|:1')
+        AND
+            tc.claim_id > (SELECT aac.code_value FROM admin_alarm_code aac WHERE aac.code_type = CONCAT(#{profiles}, '_CLAIM_COMPLETE_LAST_KEY'))
+
+        <include refid="andIfExistOnOffPartnersFindOnlyTheirs" />
+
+        ORDER BY tc.claim_id DESC
+    </select>
+
+    <!-- CLAIM COMPLETE ALARM // -->
+
+    <!-- // ORDER COMPLETE ALARM -->
+
+    <resultMap id="resultMapOrderComplete" type="com.sample.batch.order.model.AdminAlarm">
+        <result property="dealId" column="dealId" />
+        <result property="orderId" column="orderId" />
+        <result property="orderDate" column="orderDate" />
+        <association property="dealInfo" column="dealId" select="selectDealInfo" />
+        <association property="orderInfo" column="orderId" select="selectOrderInfo" />
+        <collection property="optionCouponList" column="{orderId=orderId,couponStatus=couponStatus}" select="selectOptionCouponList" />
+    </resultMap>
+
+    <select id="selectOrderCompleteList" parameterType="java.util.Map" resultMap="resultMapOrderComplete">
+        SELECT
+            oi.deal_id AS dealId
+            , oi.order_id AS orderId
+            , FROM_UNIXTIME(oi.order_time) AS orderDate
+            , '0' AS couponStatus
+
+        FROM order_info oi
+
+        INNER JOIN deal_info di ON oi.deal_id = di.deal_id
+        INNER JOIN deal_info_detail_service did ON oi.deal_id = did.deal_id
+
+        WHERE
+            oi.order_status = '1'
+        AND
+            di.deal_group_id IN ('100000000', '300000000')
+        AND
+            (did.order_finish_alarm_target REGEXP ':"1"|:1' OR did.order_cancel_alarm_target REGEXP ':"1"|:1')
+        AND
+            oi.order_id > (SELECT aac.code_value FROM admin_alarm_code aac WHERE aac.code_type = CONCAT(#{profiles}, '_ORDER_COMPLETE_LAST_KEY'))
+
+        <include refid="andIfExistOnOffPartnersFindOnlyTheirs" />
+
+        ORDER BY oi.order_id DESC
+    </select>
+
+    <!-- ORDER COMPLETE ALARM // -->
+
+    <!-- MAIN SQL /////// -->
+
+</mapper>
+

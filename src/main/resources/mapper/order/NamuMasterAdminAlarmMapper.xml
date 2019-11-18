@@ -1,0 +1,55 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sample.batch.order.mapper.NamuMasterAdminAlarmMapper">
+
+    <!-- CLAIM REQUEST ALARM -->
+    <update id="updateClaimRequestLastKey" parameterType="java.util.Map">
+        INSERT INTO admin_alarm_code (code_type, code_value, memo, chg_dt)
+        VALUES
+        (
+        CONCAT(#{profiles}, '_CLAIM_REQUEST_LAST_KEY')
+        , #{lastKey}
+        , CONCAT(#{profiles}, ' : 취소 신청 알림 배치용 - last claim_id')
+        , NOW()
+        )
+
+        ON DUPLICATE KEY
+
+        UPDATE code_value = #{lastKey}, chg_dt = NOW()
+    </update>
+
+    <!-- CLAIM COMPLETE ALARM -->
+    <update id="updateClaimCompleteLastKey" parameterType="java.util.Map">
+        INSERT INTO admin_alarm_code (code_type, code_value, memo, chg_dt)
+        VALUES
+        (
+        CONCAT(#{profiles}, '_CLAIM_COMPLETE_LAST_KEY')
+        , #{lastKey}
+        , CONCAT(#{profiles}, ' : 취소 완료 알림 배치용 - last claim_id')
+        , NOW()
+        )
+
+        ON DUPLICATE KEY
+
+        UPDATE code_value = #{lastKey}, chg_dt = NOW()
+    </update>
+
+    <!-- ORDER COMPLETE ALARM -->
+    <update id="updateOrderCompleteLastKey" parameterType="java.util.Map">
+        INSERT INTO admin_alarm_code (code_type, code_value, memo, chg_dt)
+        VALUES
+        (
+        CONCAT(#{profiles}, '_ORDER_COMPLETE_LAST_KEY')
+        , #{lastKey}
+        , CONCAT(#{profiles}, ' : 주문 완료 알림 배치용 - last order_id')
+        , NOW()
+        )
+
+        ON DUPLICATE KEY
+
+        UPDATE code_value = #{lastKey}, chg_dt = NOW()
+    </update>
+
+</mapper>
+
